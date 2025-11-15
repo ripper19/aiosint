@@ -13,7 +13,7 @@ class whois_lookup:
             info = whois.whois(domain)
             return dict(info)
         except Exception as e:
-            return {"error". str(e)}
+            return (f"Error {str(e)}")
 
 
  #processor//process raw data to clean data that can  be passed to analyzer
@@ -26,11 +26,12 @@ class parser:
             if isinstance(data, dict) and "error" in data:
                 errored_data[key] = data["error"]
             else:
-                clean_data[key] = str(data)
-        return clean_data, errored_data
+                if isinstance(data, dict):
+                    clean_data[key] = str(data)
+        return clean_data
 
 #ai_anlyser// need to work
-class ai_analysis:
+"""class ai_analysis:
 
     summarizer = pipeline("summarizer", model="t5-small")
     categorizer = pipeline("zero-shot-classification", model="typeform/distilbert-base-uncased-mnli")
@@ -40,27 +41,40 @@ class ai_analysis:
             whois_data = clean.get("whois", {})
 
             text_parts = []
-
-            if whois_data.get('domain_name'):
-                domain_value = whois_data.get('domain_name')
-
-                if isinstance(domain_value, str) and domain_value.strip():
+#domain name - check types
+            domain_value = whois_data.get('domain_name')
+            if isinstance(domain_value, str) and domain_value.strip():
                     text_parts.append(f"DOmain {domain_value.strip()}")
-                
-                elif isinstance(domain_value, list):
-                    domain_list = [d.strip() for d in domain_value if isinstance(d, str) and d.strip()]
-                    if domain_list:
+            elif isinstance(domain_value, list):
+                domain_list = [d.strip() for d in domain_value if isinstance(d, str) and d.strip()]
+                if domain_list:
                         text_parts.append(f"Domain {domain_list[0]}")
+            elif domain_value:
+                    text_parts.append(f"Domain {str(domain_value)}")
+            
+            ##registrar
+            registrar = whois_data.get('registrar')
+            if registrar:
+                text_parts.append(f"Registered by {registrar}")
+            
+            #creationdate
+            created = whois_data.get('cretion_date')
+            if created:
+                text_parts.append(f"Created on {created}")
 
+            #nameservers
+            namevalue = whois_data.get('name_servers')
+            if isinstance(namevalue, list):
+                 namecount = len([ns for ns in namevalue if ns])
+                 if namecount >0:
+                      text_parts.append(f"using {namecount} name server{'s' if namecount !=1 else ''}")
+            
 
 
         except Exception as e:
             return("Error". str(e))
 
-
-
-
-
+"""
 
 
 #running main block
